@@ -2,9 +2,9 @@
  M480BSP_I2C_LSM6DSL
 
 
-update @ 2020/06/17
+update @ 2020/06/19
 
-1. use I2C0 initial LSM6DSL (PA5 : SCL , PA4 : SDA
+1. use I2C0 initial LSM6DSL (PA5 : SCL , PA4 : SDA)
 
 	- PIN#2 : SCL	(use external pull up res.)
 	
