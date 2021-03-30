@@ -17,7 +17,7 @@ static int16_t cLSM6DSL_GYROz =0;
 uint8_t FlagSwitch = 0;
 
 #define PI (float)3.14159265f
-float RollAng = 0.0f, PitchAng = 0.0f;
+float RollAng = 0.0f, PitchAng = 0.0f, YawAng = 0.0f;
 #define FILTER_COUNT  	(16)
 #define FILTER_FACTOR  	(4)
 
@@ -690,18 +690,43 @@ void Gyroscope_filter(void)
 
 void Angle_Calculate(void)
 {  
-	float s1 = 0;
-	float s2 = 0;	
+//	float s1 = 0.0f;
+//	float s2 = 0.0f;	
+	static float fXg = 0.0f;
+	static float fYg = 0.0f;
+	static float fZg = 0.0f;
+	const float alpha = 0.5f;
 
 	Accelerator_filter();
 	Gyroscope_filter();
 
+	/*
+		https://engineering.stackexchange.com/questions/3348/calculating-pitch-yaw-and-roll-from-mag-acc-and-gyro-data
+	*/
+
+	#if 0
 	s1 = sqrt((float)((ay *ay )+(az *az )));
 	s2 = sqrt((float)((ax *ax )+(az *az )));
 
 	PitchAng = atan(ax /s1)*180/PI;
 	RollAng = atan(ay /s2)*180/PI;
+	YawAng = atan(az /s2)*180/PI;
+	#else
+    //Low Pass Filter
+    fXg = ax * alpha + (fXg * (1.0f - alpha));
+    fYg = ay * alpha + (fYg * (1.0f - alpha));
+    fZg = az * alpha + (fZg * (1.0f - alpha));
 
+	
+	PitchAng = 180 * atan (ax/sqrt(ay*ay + az*az))/PI;
+	RollAng = 180 * atan (ay/sqrt(ax*ax + az*az))/PI;
+	YawAng = 180 * atan (az/sqrt(ax*ax + az*az))/PI;
+
+//    PitchAng = (atan2(-ax, sqrt(ay*ay + az*az))*180.0)/PI;	
+//    RollAng  = (atan2(ay, az)*180.0)/PI;
+	#endif
+
+	
 //	PitchAng = atan(ax /s1)*57.295779;
 //	RollAng = atan(ay /s2)*57.295779;
 
@@ -722,7 +747,8 @@ void Angle_Calculate(void)
 	{		
 		printf("Pitch:%8.3lf,",PitchAng);
 		printf("Roll:%8.3lf,",RollAng);
-
+		printf("Yaw:%8.3lf,",YawAng);
+		
 		#if defined (ENABLE_KALMAN_FILTER)
 		printf("Angle:%8.3lf,",f_angle);
 		#endif
